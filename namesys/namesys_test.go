@@ -8,13 +8,13 @@ import (
 
 	opts "github.com/ipfs/go-ipfs/namesys/opts"
 	"gx/ipfs/QmPL8bYtbACcSFFiSr4s2du7Na382NxRADR8hC7D9FkEA2/go-unixfs"
-	path "gx/ipfs/QmX7uSbkNz76yNwBhuwYwRbhihLnJqM73VTCjS3UMJud9A/go-path"
 
 	ci "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
 	peer "gx/ipfs/QmQsErDt8Qgw1XrsXf2BpEzDgGWtB1YLsTAARBup5b6B9W/go-libp2p-peer"
 	offroute "gx/ipfs/QmSNe4MWVxZWk6UxxW2z2EKofFo4GdFzud1vfn1iVby3mj/go-ipfs-routing/offline"
 	ds "gx/ipfs/QmSpg1CvpXQQow5ernt1gNBXaXV6yxyNqi7XoeerWfzB5w/go-datastore"
 	dssync "gx/ipfs/QmSpg1CvpXQQow5ernt1gNBXaXV6yxyNqi7XoeerWfzB5w/go-datastore/sync"
+	path "gx/ipfs/QmX7uSbkNz76yNwBhuwYwRbhihLnJqM73VTCjS3UMJud9A/go-path"
 	ipns "gx/ipfs/QmbUUxB9ErnEQdwTzy6HTxucnBvAH4am6vsfbD8CiqKhi9/go-ipns"
 	pstoremem "gx/ipfs/Qmda4cPRvSRyox3SqgJN6DfSZGU5TtHufPTp9uXjFj71X6/go-libp2p-peerstore/pstoremem"
 )
@@ -23,7 +23,7 @@ type mockResolver struct {
 	entries map[string]string
 }
 
-func testResolution(t *testing.T, resolver Resolver, name string, depth uint, expected string, expError error) {
+func testResolution(t *testing.T, resolver Resolver, name string, depth uint64, expected string, expError error) {
 	t.Helper()
 	p, err := resolver.Resolve(context.Background(), name, opts.Depth(depth))
 	if err != expError {
