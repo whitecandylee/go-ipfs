@@ -215,4 +215,36 @@ test_expect_success "GET compact blocks succeeds" '
 
 test_kill_ipfs_daemon
 
+
+GWPORT=32563
+
+test_expect_success "set up iptb testbed" '
+  iptb init -n 2 -p 0 -f --bootstrap=none &&
+  iptb run 0 ipfs config Addresses.Gateway /ip4/127.0.0.1/tcp/$GWPORT
+'
+
+test_expect_success "set NoFetch to true in config of node 0" '
+  iptb run 0 ipfs config --bool=true Gateway.NoFetch true
+'
+
+test_expect_success "start ipfs nodes" '
+  iptb start &&
+  iptb connect 0 1
+'
+
+test_expect_success "try fetching not present key from node 0" '
+  echo "hi" | iptb run 1 ipfs add -Q > hi.hash &&
+  test_expect_code 22 curl -f "http://127.0.0.1:$GWPORT/ipfs/$(cat hi.hash)"
+'
+
+test_expect_success "try fetching present key from from node 0" '
+  echo "hi" | iptb run 0 ipfs add -Q > hi.hash &&
+  PORT1=$(ipfs config Addresses.Gateway | cut -d/ -f 5) &&
+  curl -f "http://127.0.0.1:$GWPORT/ipfs/$(cat hi.hash)"
+'
+
+test_expect_success "stop testbed" '
+  iptb stop
+'
+
 test_done

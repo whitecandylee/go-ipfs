@@ -20,11 +20,10 @@ import (
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 
 	offline "gx/ipfs/QmT6dHGp3UYd3vUMpy7rzX2CXQv7HLcj42Vtq8qwwjgASb/go-ipfs-exchange-offline"
+	bserv "gx/ipfs/QmWfhv1D18DRSiSm73r4QGcByspzPtxxRTcmHW3axFXZo8/go-blockservice"
 	dag "gx/ipfs/QmY8BMUSpCwNiTmFhACmC9Bt1qT63cHP35AoQAus4x14qH/go-merkledag"
 	logging "gx/ipfs/QmZChCsSt8DctjceaL56Eibc29CVQq4dGKRXC5JRZ6Ppae/go-log"
 	ipld "gx/ipfs/QmdDXJs4axxefSPgK6Y1QhpJWKuDPnGJiqgq4uncb4rFHL/go-ipld-format"
-	bserv "gx/ipfs/QmWfhv1D18DRSiSm73r4QGcByspzPtxxRTcmHW3axFXZo8/go-blockservice"
-	merkledag "gx/ipfs/QmY8BMUSpCwNiTmFhACmC9Bt1qT63cHP35AoQAus4x14qH/go-merkledag"
 )
 
 var log = logging.Logger("core/coreapi")
