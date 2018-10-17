@@ -16,11 +16,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"strings"
 	"time"
 
 	version "github.com/ipfs/go-ipfs"
+	dnspubsub "github.com/ipfs/go-ipfs/cmd/ipns-dns/namesys"
 	rp "github.com/ipfs/go-ipfs/exchange/reprovide"
 	filestore "github.com/ipfs/go-ipfs/filestore"
 	mount "github.com/ipfs/go-ipfs/fuse/mount"
@@ -544,13 +546,14 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 	bitswapNetwork := bsnet.NewFromIpfsHost(n.PeerHost, n.Routing)
 	n.Exchange = bitswap.New(ctx, bitswapNetwork, n.Blockstore)
 
-	size, err := n.getCacheSize()
-	if err != nil {
-		return err
-	}
+	// size, err := n.getCacheSize()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// setup name system
-	n.Namesys = namesys.NewNameSystem(n.Routing, n.Repo.Datastore(), size)
+	// n.Namesys = namesys.NewNameSystem(n.Routing, n.Repo.Datastore(), size)
+	n.Namesys = dnspubsub.NewNamesys(n.Floodsub, net.DefaultResolver)
 
 	// setup ipns republishing
 	return n.setupIpnsRepublisher()
