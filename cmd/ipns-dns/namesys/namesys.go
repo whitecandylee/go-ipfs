@@ -10,7 +10,9 @@ import (
 	namesys "github.com/ipfs/go-ipfs/namesys"
 	namesysopt "github.com/ipfs/go-ipfs/namesys/opts"
 
-	ci "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
+	cid "gx/ipfs/QmPSQnBKM9g7BaUcZCvswUJVscQ1ipjmwxN5PXCjkp9EQ7/go-cid"
+	multihash "gx/ipfs/QmPnFwZ2JXKnXgMw8CdBPxn7FWh6LLdjUjxV1fKHuJnkr8/go-multihash"
+	p2pcrypto "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
 	// dns "gx/ipfs/QmWchsfMt9Re1CQaiHqPQC1DrZ9bkpa6n229dRYkGyLXNh/dns"
 	floodsub "gx/ipfs/QmTcC9Qx2adsdGguNpqZ6dJK7MMsH8sf3yfxZxG3bSwKet/go-libp2p-floodsub"
 	ipns "gx/ipfs/QmX72XT6sSQRkNHKcAFLM2VqB3B4bWPetgWnHY8LgsUVeT/go-ipns"
@@ -29,11 +31,20 @@ func NewNamesys(pubsub *floodsub.PubSub, resolver *net.Resolver) Namesys {
 	return Namesys{pubsub, resolver}
 }
 
-func (n Namesys) Resolve(ctx context.Context, name string, opts ...namesysopt.ResolveOpt) (path.Path, error) {
-	if !strings.HasPrefix(name, "/ipns/") {
-		return "", fmt.Errorf("not an ipns name: %s", name)
+func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysopt.ResolveOpt) (path.Path, error) {
+	if !strings.HasPrefix(namepath, "/ipns/") {
+		return "", fmt.Errorf("not an ipns name: %s", namepath)
 	}
-	records, err := n.DNS.LookupTXT(ctx, "base32peerid.ipns.name")
+
+	peerid, err := multihash.Cast(strings.Split(namepath, "/")[2])
+	if err != nil {
+		return "", fmt.Errorf("failed to decode PeerID: %s", err)
+	}
+	peercid := NewCidV1(cotext)
+
+	peeridb32 := peerid.Encode(multibase.MustNewEncoder('b'))
+
+	records, err := n.DNS.LookupTXT(ctx, peeridb32+".ipns.name")
 	if err != nil {
 		return "", err
 	}
@@ -41,6 +52,9 @@ func (n Namesys) Resolve(ctx context.Context, name string, opts ...namesysopt.Re
 	var bestPath path.Path
 	var bestEOL time.Time
 	for _, str := range records {
+		if !strings.HasPrefix(str, "ipns=") {
+			continue
+		}
 		_, pb, err := multibase.Decode(str)
 		if err != nil {
 			continue
@@ -74,12 +88,13 @@ func (n Namesys) Resolve(ctx context.Context, name string, opts ...namesysopt.Re
 	return bestPath, nil
 }
 
-func (n Namesys) Publish(ctx context.Context, name ci.PrivKey, value path.Path) error {
-	return n.PublishWithEOL(ctx, name, value, time.Now().Add(24*time.Hour))
+func (n Namesys) Publish(ctx context.Context, name p2pcrypto.PrivKey, value path.Path) error {
+	arbitraryEOL := time.Now().Add(24 * time.Hour)
+	return n.PublishWithEOL(ctx, name, value, arbitraryEOL)
 }
 
 // pubsub
-// ipns entry as base32
-func (n Namesys) PublishWithEOL(ctx context.Context, name ci.PrivKey, value path.Path, eol time.Time) error {
+// ipns entry as base64
+func (n Namesys) PublishWithEOL(ctx context.Context, name p2pcrypto.PrivKey, value path.Path, eol time.Time) error {
 	return nil
 }
