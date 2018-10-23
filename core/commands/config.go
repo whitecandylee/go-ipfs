@@ -379,6 +379,11 @@ func transformConfig(configRoot string, configName string, transformer config.Tr
 		return err
 	}
 
+	cfg, err = cfg.Clone()
+	if err != nil {
+		return err
+	}
+
 	err = transformer(cfg)
 	if err != nil {
 		return err
