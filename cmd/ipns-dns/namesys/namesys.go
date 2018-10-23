@@ -36,13 +36,13 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 		return "", fmt.Errorf("not an ipns name: %s", namepath)
 	}
 
-	peerid, err := multihash.Cast(strings.Split(namepath, "/")[2])
+	peerid, err := multihash.Cast([]byte(strings.Split(namepath, "/")[2]))
 	if err != nil {
 		return "", fmt.Errorf("failed to decode PeerID: %s", err)
 	}
-	peercid := NewCidV1(cotext)
+	peercid := cid.NewCidV1(cid.Raw, peerid)
 
-	peeridb32 := peerid.Encode(multibase.MustNewEncoder('b'))
+	peeridb32 := peercid.Encode(multibase.MustNewEncoder('b'))
 
 	records, err := n.DNS.LookupTXT(ctx, peeridb32+".ipns.name")
 	if err != nil {
@@ -86,6 +86,13 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 	}
 
 	return bestPath, nil
+}
+
+func (n Namesys) ResolveAsync(ctx context.Context, name string, opts ...namesysopt.ResolveOpt) <-chan namesys.Result {
+	res := make(chan namesys.Result, 1)
+	path, err := n.Resolve(ctx, name, opts...)
+	res <- namesys.Result{path, err}
+	return res
 }
 
 func (n Namesys) Publish(ctx context.Context, name p2pcrypto.PrivKey, value path.Path) error {
