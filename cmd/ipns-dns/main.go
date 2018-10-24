@@ -6,6 +6,7 @@ import (
 	"time"
 
 	libp2p "gx/ipfs/QmPL3AKtiaQyYpchZceXBZhZ3MSnoGqJvLZrc7fzDTTQdJ/go-libp2p"
+	manet "gx/ipfs/QmV6FjemM1K8oXjrvuq3wuVWWoU2TLDPmNnKrxHzY3v6Ai/go-multiaddr-net"
 )
 
 const topic = "/ipns/.well-known/all"
@@ -64,8 +65,16 @@ func main() {
 
 	go func() {
 		for range time.Tick(10 * time.Second) {
-			fmt.Printf("peers: total %d, topic %d\n",
-				len(host.Network().Conns()), len(d.PubSub.ListPeers(topic)))
+			conns := host.Network().Conns()
+			local := 0
+			for _, conn := range conns {
+				if manet.IsIPLoopback(conn.RemoteMultiaddr()) {
+					local++
+				}
+			}
+
+			fmt.Printf("peers: total %d, local %d, topic %d\n",
+				len(conns), local, len(d.PubSub.ListPeers(topic)))
 		}
 	}()
 
