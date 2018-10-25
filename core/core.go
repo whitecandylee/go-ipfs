@@ -553,7 +553,7 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 
 	// setup name system
 	// n.Namesys = namesys.NewNameSystem(n.Routing, n.Repo.Datastore(), size)
-	n.Namesys = dnspubsub.NewNamesys(n.Floodsub, net.DefaultResolver)
+	n.Namesys = dnspubsub.NewNamesys(n.Floodsub, net.DefaultResolver, "/ipns/.well-known/all")
 
 	// setup ipns republishing
 	return n.setupIpnsRepublisher()

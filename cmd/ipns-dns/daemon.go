@@ -6,8 +6,11 @@ import (
 	"sync"
 	"time"
 
+	p2pdiscovery "gx/ipfs/QmPL3AKtiaQyYpchZceXBZhZ3MSnoGqJvLZrc7fzDTTQdJ/go-libp2p/p2p/discovery"
 	routing "gx/ipfs/QmPmFeQ5oY5G6M7aBWggi5phxEPXwsQntE1DFcUzETULdp/go-libp2p-routing"
+	p2pcrypto "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
 	blocks "gx/ipfs/QmRcHuYzAyswytBuMF78rj3LTChYszomRFXNg4685ZN1WM/go-block-format"
+	p2pnet "gx/ipfs/QmSTaEYUgDe1r581hxyd2u9582Hgp3KX4wGwYbRqz2u9Qh/go-libp2p-net"
 	record "gx/ipfs/QmSb4B8ZAAj5ALe9LjfzPyF8Ma6ezC1NTnDF2JQPUJxEXb/go-libp2p-record"
 	dht "gx/ipfs/QmSteomMgXnSQxLEY5UpxmkYAd8QF9JuLLeLYBokTHxFru/go-libp2p-kad-dht"
 	dhtopts "gx/ipfs/QmSteomMgXnSQxLEY5UpxmkYAd8QF9JuLLeLYBokTHxFru/go-libp2p-kad-dht/opts"
@@ -18,29 +21,39 @@ import (
 	maddr "gx/ipfs/QmYmsdtJ3HsodkePE3eU3TsCaP2YvPZJ4LoXnNkDE5Tpt7/go-multiaddr"
 	datastore "gx/ipfs/QmaRb5yNXKonhbkpNxNawoydk4N6es6b4fPj19sjEKsh5D/go-datastore"
 	p2ppeer "gx/ipfs/QmbNepETomvmXfz1X5pHNFD2QuPqnqi47dTd94QJWSorQ3/go-libp2p-peer"
+	proto "gx/ipfs/QmdxUuburamoF6zF9qjeQC4WYcWGbWuRmdLacMEsW8ioD8/gogo-protobuf/proto"
 	p2phost "gx/ipfs/Qmf5yHzmWAyHSJRPAmZzfk3Yd7icydBLi7eec5741aov7v/go-libp2p-host"
 )
 
 type Daemon struct {
-	Host    p2phost.Host
-	Routing routing.IpfsRouting
-	PubSub  *floodsub.PubSub
-	Updates *floodsub.Subscription
+	Context   context.Context
+	Host      p2phost.Host
+	Routing   routing.IpfsRouting
+	Discovery p2pdiscovery.Service
+	PubSub    *floodsub.PubSub
+	Updates   *floodsub.Subscription
 
 	Records map[p2ppeer.ID]*ipnspb.IpnsEntry
 }
 
 func NewDaemon(ctx context.Context, host p2phost.Host) (*Daemon, error) {
-	d := &Daemon{Host: host}
+	d := &Daemon{Context: ctx, Host: host}
 
 	pubsub, err := floodsub.NewGossipSub(ctx, host)
 	if err != nil {
 		return nil, err
 	}
 
+	interval := 5 * time.Second
+	discovery, err := p2pdiscovery.NewMdnsService(ctx, host, interval, p2pdiscovery.ServiceTag)
+	if err != nil {
+		return nil, err
+	}
+	discovery.RegisterNotifee(d)
+
 	ds := datastore.NewMapDatastore()
 	validator := record.NamespacedValidator{
-		"pk":   record.PublicKeyValidator{},
+		// "pk":   record.PublicKeyValidator{},
 		"ipns": ipns.Validator{KeyBook: host.Peerstore()},
 	}
 	dht, err := dht.New(ctx, host, dhtopts.Datastore(ds), dhtopts.Validator(validator))
@@ -49,6 +62,7 @@ func NewDaemon(ctx context.Context, host p2phost.Host) (*Daemon, error) {
 	}
 
 	d.PubSub = pubsub
+	d.Discovery = discovery
 	d.Routing = dht
 
 	return d, nil
@@ -74,6 +88,23 @@ func (d *Daemon) BootstrapNetwork(ctx context.Context, addrs []string) error {
 	}
 
 	return nil
+}
+
+func (d *Daemon) HandlePeerFound(pinfo peerstore.PeerInfo) {
+	connectTimeout := 10 * time.Second
+	ctx, cancel := context.WithTimeout(d.Context, connectTimeout)
+	defer cancel()
+
+	connected := d.Host.Network().Connectedness(pinfo.ID) == p2pnet.Connected
+	if connected {
+		return
+	}
+
+	fmt.Printf("found: /p2p/%s %+v\n", pinfo.ID.Pretty(), pinfo.Addrs)
+
+	if err := d.Host.Connect(ctx, pinfo); err == nil {
+		fmt.Printf("connected: /p2p/%s\n", pinfo.ID.Pretty())
+	}
 }
 
 // see also: go-libp2p-pubsub-router/pubsub.go
@@ -141,12 +172,40 @@ func (d *Daemon) validateMessage(ctx context.Context, msg *floodsub.Message) boo
 }
 
 func (d *Daemon) ReceiveUpdates(ctx context.Context) {
+	validator := ipns.Validator{}
 	for {
 		msg, err := d.Updates.Next(ctx)
 		if err != nil {
+			fmt.Printf("receive error: updates.next: %s\n", err)
 			continue
 		}
-		fmt.Printf("received: %s (seqno %d)\n", msg.Data, msg.Seqno)
+
+		entry := new(ipnspb.IpnsEntry)
+		err = proto.Unmarshal(msg.Data, entry)
+		if err != nil {
+			fmt.Printf("received invalid: unmarshal: %s\n", err)
+			continue
+		}
+
+		pubkey, err := p2pcrypto.UnmarshalPublicKey(entry.GetPubKey())
+		if err != nil {
+			fmt.Printf("received invalid: pubkey: %s\n", err)
+			continue
+		}
+
+		peerid, err := p2ppeer.IDFromPublicKey(pubkey)
+		if err != nil {
+			fmt.Printf("received invalid: peerid: %s\n", err)
+			continue
+		}
+
+		err = validator.Validate("/ipns/"+string(peerid), msg.Data)
+		if err != nil {
+			fmt.Printf("received invalid: validate: %s\n", err)
+			continue
+		}
+
+		fmt.Printf("received: /ipns/%s => %s\n", peerid.Pretty(), entry.GetValue())
 	}
 }
 

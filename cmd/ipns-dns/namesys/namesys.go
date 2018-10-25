@@ -25,10 +25,11 @@ import (
 type Namesys struct {
 	PubSub *floodsub.PubSub
 	DNS    *net.Resolver
+	Topic  string
 }
 
-func NewNamesys(pubsub *floodsub.PubSub, resolver *net.Resolver) Namesys {
-	return Namesys{pubsub, resolver}
+func NewNamesys(pubsub *floodsub.PubSub, resolver *net.Resolver, topic string) Namesys {
+	return Namesys{pubsub, resolver, topic}
 }
 
 func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysopt.ResolveOpt) (path.Path, error) {
@@ -42,7 +43,7 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 	}
 	peercid := cid.NewCidV1(cid.Raw, peerid)
 
-	peeridb32 := peercid.Encode(multibase.MustNewEncoder('b'))
+	peeridb32 := peercid.Encode(multibase.MustNewEncoder(multibase.Base32))
 
 	records, err := n.DNS.LookupTXT(ctx, peeridb32+".ipns.name")
 	if err != nil {
@@ -102,6 +103,25 @@ func (n Namesys) Publish(ctx context.Context, name p2pcrypto.PrivKey, value path
 
 // pubsub
 // ipns entry as base64
-func (n Namesys) PublishWithEOL(ctx context.Context, name p2pcrypto.PrivKey, value path.Path, eol time.Time) error {
+func (n Namesys) PublishWithEOL(ctx context.Context, privkey p2pcrypto.PrivKey, value path.Path, eol time.Time) error {
+	seqNo := 0
+	entry, err := ipns.Create(privkey, []byte(value), uint64(seqNo), eol)
+	if err != nil {
+		return err
+	}
+
+	if err = ipns.EmbedPublicKey(privkey.GetPublic(), entry); err != nil {
+		return err
+	}
+
+	data, err := proto.Marshal(entry)
+	if err != nil {
+		return err
+	}
+
+	if err = n.PubSub.Publish(n.Topic, data); err != nil {
+		return err
+	}
+
 	return nil
 }
