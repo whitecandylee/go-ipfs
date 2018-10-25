@@ -7,6 +7,7 @@ import (
 	"time"
 
 	p2pdiscovery "gx/ipfs/QmPL3AKtiaQyYpchZceXBZhZ3MSnoGqJvLZrc7fzDTTQdJ/go-libp2p/p2p/discovery"
+	cid "gx/ipfs/QmPSQnBKM9g7BaUcZCvswUJVscQ1ipjmwxN5PXCjkp9EQ7/go-cid"
 	routing "gx/ipfs/QmPmFeQ5oY5G6M7aBWggi5phxEPXwsQntE1DFcUzETULdp/go-libp2p-routing"
 	p2pcrypto "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
 	blocks "gx/ipfs/QmRcHuYzAyswytBuMF78rj3LTChYszomRFXNg4685ZN1WM/go-block-format"
@@ -15,6 +16,7 @@ import (
 	dht "gx/ipfs/QmSteomMgXnSQxLEY5UpxmkYAd8QF9JuLLeLYBokTHxFru/go-libp2p-kad-dht"
 	dhtopts "gx/ipfs/QmSteomMgXnSQxLEY5UpxmkYAd8QF9JuLLeLYBokTHxFru/go-libp2p-kad-dht/opts"
 	floodsub "gx/ipfs/QmTcC9Qx2adsdGguNpqZ6dJK7MMsH8sf3yfxZxG3bSwKet/go-libp2p-floodsub"
+	dns "gx/ipfs/QmWchsfMt9Re1CQaiHqPQC1DrZ9bkpa6n229dRYkGyLXNh/dns"
 	peerstore "gx/ipfs/QmWtCpWB39Rzc2xTB75MKorsxNpo3TyecTEN24CJ3KVohE/go-libp2p-peerstore"
 	ipns "gx/ipfs/QmX72XT6sSQRkNHKcAFLM2VqB3B4bWPetgWnHY8LgsUVeT/go-ipns"
 	ipnspb "gx/ipfs/QmX72XT6sSQRkNHKcAFLM2VqB3B4bWPetgWnHY8LgsUVeT/go-ipns/pb"
@@ -209,5 +211,38 @@ func (d *Daemon) ReceiveUpdates(ctx context.Context) {
 	}
 }
 
-func (d *Daemon) ServeDNS(ctx context.Context)  {}
+func (d *Daemon) ServeDNS(ctx context.Context) {
+	handler := &dnsServer{}
+	err := dns.ListenAndServe(":4053", "udp", handler)
+	if err != nil {
+		fmt.Printf("dns server: %s\n", err)
+	}
+}
+
+type dnsServer struct{}
+
+func (dnsserv *dnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+	fmt.Printf("dns request: %+v\n", r.Question)
+	for _, q := range r.Question {
+		if q.Qtype != dns.TypeTXT {
+			continue
+		}
+
+		labels := dns.SplitDomainName(q.Name)
+		peercid, err := cid.Decode(labels[0])
+		if err != nil {
+			continue
+		}
+
+		peerid, err := p2ppeer.IDFromBytes(peercid.Hash())
+		if err != nil {
+			continue
+		}
+
+		fmt.Printf("serve: /ipns/%s\n", peerid.Pretty())
+
+		w.WriteMsg(r)
+	}
+}
+
 func (d *Daemon) ServeHTTP(ctx context.Context) {}

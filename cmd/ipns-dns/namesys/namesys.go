@@ -13,7 +13,6 @@ import (
 	cid "gx/ipfs/QmPSQnBKM9g7BaUcZCvswUJVscQ1ipjmwxN5PXCjkp9EQ7/go-cid"
 	multihash "gx/ipfs/QmPnFwZ2JXKnXgMw8CdBPxn7FWh6LLdjUjxV1fKHuJnkr8/go-multihash"
 	p2pcrypto "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
-	// dns "gx/ipfs/QmWchsfMt9Re1CQaiHqPQC1DrZ9bkpa6n229dRYkGyLXNh/dns"
 	floodsub "gx/ipfs/QmTcC9Qx2adsdGguNpqZ6dJK7MMsH8sf3yfxZxG3bSwKet/go-libp2p-floodsub"
 	ipns "gx/ipfs/QmX72XT6sSQRkNHKcAFLM2VqB3B4bWPetgWnHY8LgsUVeT/go-ipns"
 	ipnspb "gx/ipfs/QmX72XT6sSQRkNHKcAFLM2VqB3B4bWPetgWnHY8LgsUVeT/go-ipns/pb"
@@ -37,15 +36,17 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 		return "", fmt.Errorf("not an ipns name: %s", namepath)
 	}
 
-	peerid, err := multihash.Cast([]byte(strings.Split(namepath, "/")[2]))
+	peerid, err := multihash.FromB58String(strings.Split(namepath, "/")[2])
 	if err != nil {
 		return "", fmt.Errorf("failed to decode PeerID: %s", err)
 	}
+
 	peercid := cid.NewCidV1(cid.Raw, peerid)
-
 	peeridb32 := peercid.Encode(multibase.MustNewEncoder(multibase.Base32))
+	domainname := peeridb32 + ".ipns.name"
 
-	records, err := n.DNS.LookupTXT(ctx, peeridb32+".ipns.name")
+	fmt.Printf("looking up: TXT %s\n", domainname)
+	records, err := n.DNS.LookupTXT(ctx, domainname)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +57,7 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 		if !strings.HasPrefix(str, "ipns=") {
 			continue
 		}
-		_, pb, err := multibase.Decode(str)
+		_, pb, err := multibase.Decode(str[5:])
 		if err != nil {
 			continue
 		}
@@ -101,8 +102,6 @@ func (n Namesys) Publish(ctx context.Context, name p2pcrypto.PrivKey, value path
 	return n.PublishWithEOL(ctx, name, value, arbitraryEOL)
 }
 
-// pubsub
-// ipns entry as base64
 func (n Namesys) PublishWithEOL(ctx context.Context, privkey p2pcrypto.PrivKey, value path.Path, eol time.Time) error {
 	seqNo := 0
 	entry, err := ipns.Create(privkey, []byte(value), uint64(seqNo), eol)

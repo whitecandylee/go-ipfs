@@ -553,7 +553,16 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 
 	// setup name system
 	// n.Namesys = namesys.NewNameSystem(n.Routing, n.Repo.Datastore(), size)
-	n.Namesys = dnspubsub.NewNamesys(n.Floodsub, net.DefaultResolver, "/ipns/.well-known/all")
+	dnsdial := func(ctx context.Context, network, address string) (net.Conn, error) {
+		dnsdialer := &net.Dialer{}
+		host, _, err := net.SplitHostPort(address)
+		if err != nil {
+			return nil, err
+		}
+		return dnsdialer.DialContext(ctx, network, host+":4053")
+	}
+	dnsresolver := &net.Resolver{Dial: dnsdial}
+	n.Namesys = dnspubsub.NewNamesys(n.Floodsub, dnsresolver, "/ipns/.well-known/all")
 
 	// setup ipns republishing
 	return n.setupIpnsRepublisher()
