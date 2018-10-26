@@ -277,7 +277,7 @@ func (dnsserv *dnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		m.Answer = []dns.RR{&dns.TXT{Hdr: hdr, Txt: []string{"ipns="}}}
 		m.Authoritative = true
 		w.WriteMsg(m)
-		// fmt.Printf("dns(%s): nxdomain: /ipns/%s\n", dnsserv.network, peerid.Pretty())
+		fmt.Printf("dns(%s): nxdomain: /ipns/%s\n", dnsserv.network, peerid.Pretty())
 		return
 	}
 
@@ -314,5 +314,5 @@ func (dnsserv *dnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	m.SetRcode(r, dns.RcodeSuccess)
 	w.WriteMsg(m)
 
-	// fmt.Printf("dns(%s): ok: /ipns/%s\n", dnsserv.network, peerid.Pretty())
+	fmt.Printf("dns(%s): ok: /ipns/%s\n", dnsserv.network, peerid.Pretty())
 }
