@@ -228,7 +228,7 @@ func (d *Daemon) GetEntry(peerid p2ppeer.ID) (*ipnspb.IpnsEntry, bool) {
 
 func (d *Daemon) StartDNS(ctx context.Context, network string) {
 	handler := &dnsServer{getEntry: d.GetEntry, network: network}
-	err := dns.ListenAndServe(":4053", network, handler)
+	err := dns.ListenAndServe("0.0.0.0:4053", network, handler)
 	if err != nil {
 		fmt.Printf("dns server: %s\n", err)
 	}
