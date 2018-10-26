@@ -17,16 +17,16 @@ import (
 	chunker "gx/ipfs/QmR4QQVkBZsZENRjYFVi8dEtPL3daZRNKk24m4r6WKJHNm/go-ipfs-chunker"
 	posinfo "gx/ipfs/QmR6YMs8EkXQLXNwQKxLnQp2VBZSepoEJ8KCZAyanJHhJu/go-ipfs-posinfo"
 	cid "gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
+	mfs "gx/ipfs/QmRz4VBeu78f9sXhdZYw4jBvnfudBnkJkuXaeyfvFgBQhb/go-mfs"
 	bstore "gx/ipfs/QmS2aqUZLJp8kF1ihE5rvDGE5LvmKDPnx32w9Z1BW9xLV5/go-ipfs-blockstore"
-	unixfs "gx/ipfs/QmXAFxWtAB9YAMzMy9op6m95hWYu2CC5rmTsijkYL12Kvu/go-unixfs"
-	balanced "gx/ipfs/QmXAFxWtAB9YAMzMy9op6m95hWYu2CC5rmTsijkYL12Kvu/go-unixfs/importer/balanced"
-	ihelper "gx/ipfs/QmXAFxWtAB9YAMzMy9op6m95hWYu2CC5rmTsijkYL12Kvu/go-unixfs/importer/helpers"
-	trickle "gx/ipfs/QmXAFxWtAB9YAMzMy9op6m95hWYu2CC5rmTsijkYL12Kvu/go-unixfs/importer/trickle"
-	files "gx/ipfs/QmZMWMvWMVKCbHetJ4RgndbuEF1io2UpUxwQwtNjtYPzSC/go-ipfs-files"
-	mfs "gx/ipfs/QmZw3dco7GvZkuZ9pEHTHJ2DNXFxTtquraF3d2JYa5vP6q/go-mfs"
+	unixfs "gx/ipfs/QmZKvJkPsgy18PStoH1aT4H98wDz8ioYoa1gpbK3W9HsY7/go-unixfs"
+	balanced "gx/ipfs/QmZKvJkPsgy18PStoH1aT4H98wDz8ioYoa1gpbK3W9HsY7/go-unixfs/importer/balanced"
+	ihelper "gx/ipfs/QmZKvJkPsgy18PStoH1aT4H98wDz8ioYoa1gpbK3W9HsY7/go-unixfs/importer/helpers"
+	trickle "gx/ipfs/QmZKvJkPsgy18PStoH1aT4H98wDz8ioYoa1gpbK3W9HsY7/go-unixfs/importer/trickle"
 	ipld "gx/ipfs/QmcKKBwfz6FyQdHR2jsXrrF6XeSBXYL86anmWNewpFpoF5/go-ipld-format"
 	logging "gx/ipfs/QmcuXC5cxs79ro2cUuHs4HQ2bkDLJUYokwL8aivcX6HW3C/go-log"
 	dag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
+	files "gx/ipfs/QmeaQRmnRog7NxLEWHP9zSTkics4cbgwBVa7q49LmBowDr/go-ipfs-files"
 )
 
 var log = logging.Logger("coreunix")
