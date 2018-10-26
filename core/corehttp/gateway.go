@@ -25,11 +25,16 @@ func GatewayOption(writable bool, paths ...string) ServeOption {
 			return nil, err
 		}
 
+		api := coreapi.NewCoreAPI(n)
+		if cfg.Gateway.NoFetch {
+			api = api.(*coreapi.CoreAPI).Offline()
+		}
+
 		gateway := newGatewayHandler(n, GatewayConfig{
 			Headers:      cfg.Gateway.HTTPHeaders,
 			Writable:     writable,
 			PathPrefixes: cfg.Gateway.PathPrefixes,
-		}, coreapi.NewCoreAPI(n))
+		}, api)
 
 		for _, p := range paths {
 			mux.Handle(p+"/", gateway)

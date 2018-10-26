@@ -19,9 +19,12 @@ import (
 	core "github.com/ipfs/go-ipfs/core"
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 
+	offline "gx/ipfs/QmT6dHGp3UYd3vUMpy7rzX2CXQv7HLcj42Vtq8qwwjgASb/go-ipfs-exchange-offline"
 	dag "gx/ipfs/QmY8BMUSpCwNiTmFhACmC9Bt1qT63cHP35AoQAus4x14qH/go-merkledag"
 	logging "gx/ipfs/QmZChCsSt8DctjceaL56Eibc29CVQq4dGKRXC5JRZ6Ppae/go-log"
 	ipld "gx/ipfs/QmdDXJs4axxefSPgK6Y1QhpJWKuDPnGJiqgq4uncb4rFHL/go-ipld-format"
+	bserv "gx/ipfs/QmWfhv1D18DRSiSm73r4QGcByspzPtxxRTcmHW3axFXZo8/go-blockservice"
+	merkledag "gx/ipfs/QmY8BMUSpCwNiTmFhACmC9Bt1qT63cHP35AoQAus4x14qH/go-merkledag"
 )
 
 var log = logging.Logger("core/coreapi")
@@ -90,5 +93,12 @@ func (api *CoreAPI) PubSub() coreiface.PubSubAPI {
 // getSession returns new api backed by the same node with a read-only session DAG
 func (api *CoreAPI) getSession(ctx context.Context) *CoreAPI {
 	ng := dag.NewReadOnlyDagService(dag.NewSession(ctx, api.dag))
+	return &CoreAPI{api.node, ng}
+}
+
+// Offline returns new api with offline DAG
+func (api *CoreAPI) Offline() *CoreAPI {
+	bs := api.node.Blocks.Blockstore()
+	ng := dag.NewDAGService(bserv.New(bs, offline.Exchange(bs)))
 	return &CoreAPI{api.node, ng}
 }
