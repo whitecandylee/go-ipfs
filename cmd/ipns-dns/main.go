@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	libp2p "gx/ipfs/QmPL3AKtiaQyYpchZceXBZhZ3MSnoGqJvLZrc7fzDTTQdJ/go-libp2p"
 	manet "gx/ipfs/QmV6FjemM1K8oXjrvuq3wuVWWoU2TLDPmNnKrxHzY3v6Ai/go-multiaddr-net"
 )
-
-const dnsAddress = "0.0.0.0:53"
 
 const topic = "/ipns/.well-known/all"
 
@@ -23,6 +22,12 @@ var bootstrap = []string{
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if len(os.Args) == 1 {
+		fmt.Printf("usage: ipns-dns <dns-listen-addr> (e.g. ipns-dns 127.0.0.1:53)\n")
+		os.Exit(1)
+	}
+	dnsAddress := os.Args[1]
 
 	host, err := libp2p.New(ctx)
 	if err != nil {
