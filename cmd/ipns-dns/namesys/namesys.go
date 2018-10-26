@@ -45,55 +45,45 @@ func (n Namesys) Resolve(ctx context.Context, namepath string, opts ...namesysop
 	peeridb32 := peercid.Encode(multibase.MustNewEncoder(multibase.Base32))
 	domainname := peeridb32 + ".ipns.name"
 
-	fmt.Printf("looking up: TXT %s\n", domainname)
+	fmt.Printf("dns: lookup: TXT %s\n", domainname)
 	records, err := n.DNS.LookupTXT(ctx, domainname)
 	if err != nil {
 		return "", err
 	}
 
-	var bestPath path.Path
-	var bestEOL time.Time
-	for _, str := range records {
-		if !strings.HasPrefix(str, "ipns=") {
-			continue
-		}
-		_, pb, err := multibase.Decode(str[5:])
-		if err != nil {
-			continue
-		}
+	str := strings.Join(records, "")
 
-		entry := new(ipnspb.IpnsEntry)
-		err = proto.Unmarshal(pb, entry)
-		if err != nil {
-			continue
-		}
-		p, err := path.ParsePath(string(entry.GetValue()))
-		if err != nil {
-			continue
-		}
-
-		eol, err := ipns.GetEOL(entry)
-		if err != nil {
-			continue
-		}
-		if eol.Sub(bestEOL) < 0 {
-			continue
-		}
-
-		bestPath, bestEOL = p, eol
+	// fmt.Printf("dns: record: %+v\n", str)
+	if !strings.HasPrefix(str, "ipns=") || len(str) <= 5 {
+		return "", fmt.Errorf("dns: not a ipns= record")
+	}
+	// fmt.Printf("dns: multibase\n")
+	_, pb, err := multibase.Decode(str[5:])
+	if err != nil {
+		return "", fmt.Errorf("dns: multibase error: %s", err)
 	}
 
-	if len(bestPath) == 0 {
-		return "", namesys.ErrResolveFailed
+	// fmt.Printf("dns: protobuf\n")
+	entry := new(ipnspb.IpnsEntry)
+	err = proto.Unmarshal(pb, entry)
+	if err != nil {
+		return "", fmt.Errorf("dns: protobuf error: %s", err)
+	}
+	// fmt.Printf("dns: path\n")
+	p, err := path.ParsePath(string(entry.GetValue()))
+	if err != nil {
+		return "", fmt.Errorf("dns: path error: %s", err)
 	}
 
-	return bestPath, nil
+	// fmt.Printf("dns: return %s\n", p)
+	return p, nil
 }
 
 func (n Namesys) ResolveAsync(ctx context.Context, name string, opts ...namesysopt.ResolveOpt) <-chan namesys.Result {
 	res := make(chan namesys.Result, 1)
 	path, err := n.Resolve(ctx, name, opts...)
 	res <- namesys.Result{path, err}
+	close(res)
 	return res
 }
 

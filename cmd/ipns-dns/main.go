@@ -42,8 +42,8 @@ func main() {
 	fmt.Printf("bootstrapped: ok\n")
 
 	go d.ReceiveUpdates(ctx)
-	go d.ServeDNS(ctx)
-	go d.ServeHTTP(ctx)
+	go d.StartDNS(ctx, "udp")
+	go d.StartDNS(ctx, "tcp")
 
 	go func() {
 		for {

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	datastore "gx/ipfs/QmaRb5yNXKonhbkpNxNawoydk4N6es6b4fPj19sjEKsh5D/go-datastore"
 	p2ppeer "gx/ipfs/QmbNepETomvmXfz1X5pHNFD2QuPqnqi47dTd94QJWSorQ3/go-libp2p-peer"
 	proto "gx/ipfs/QmdxUuburamoF6zF9qjeQC4WYcWGbWuRmdLacMEsW8ioD8/gogo-protobuf/proto"
+	multibase "gx/ipfs/QmekxXDhCxCJRNuzmHreuaT3BsuJcsjcXWNrtV9C8DRHtd/go-multibase"
 	p2phost "gx/ipfs/Qmf5yHzmWAyHSJRPAmZzfk3Yd7icydBLi7eec5741aov7v/go-libp2p-host"
 )
 
@@ -35,7 +37,8 @@ type Daemon struct {
 	PubSub    *floodsub.PubSub
 	Updates   *floodsub.Subscription
 
-	Records map[p2ppeer.ID]*ipnspb.IpnsEntry
+	entries      map[p2ppeer.ID]*ipnspb.IpnsEntry
+	entriesMutex sync.RWMutex
 }
 
 func NewDaemon(ctx context.Context, host p2phost.Host) (*Daemon, error) {
@@ -66,6 +69,8 @@ func NewDaemon(ctx context.Context, host p2phost.Host) (*Daemon, error) {
 	d.PubSub = pubsub
 	d.Discovery = discovery
 	d.Routing = dht
+
+	d.entries = map[p2ppeer.ID]*ipnspb.IpnsEntry{}
 
 	return d, nil
 }
@@ -109,9 +114,6 @@ func (d *Daemon) HandlePeerFound(pinfo peerstore.PeerInfo) {
 	}
 }
 
-// see also: go-libp2p-pubsub-router/pubsub.go
-//
-// TODO: keep looking for providers
 func (d *Daemon) AnnouncePubsub(ctx context.Context, topic string) error {
 	timeout := 120 * time.Second
 
@@ -178,71 +180,139 @@ func (d *Daemon) ReceiveUpdates(ctx context.Context) {
 	for {
 		msg, err := d.Updates.Next(ctx)
 		if err != nil {
-			fmt.Printf("receive error: updates.next: %s\n", err)
+			// fmt.Printf("update: updates.next: %s\n", err)
 			continue
 		}
 
 		entry := new(ipnspb.IpnsEntry)
 		err = proto.Unmarshal(msg.Data, entry)
 		if err != nil {
-			fmt.Printf("received invalid: unmarshal: %s\n", err)
+			// fmt.Printf("update: unmarshal: %s\n", err)
 			continue
 		}
 
 		pubkey, err := p2pcrypto.UnmarshalPublicKey(entry.GetPubKey())
 		if err != nil {
-			fmt.Printf("received invalid: pubkey: %s\n", err)
+			// fmt.Printf("update: pubkey: %s\n", err)
 			continue
 		}
 
 		peerid, err := p2ppeer.IDFromPublicKey(pubkey)
 		if err != nil {
-			fmt.Printf("received invalid: peerid: %s\n", err)
+			// fmt.Printf("update: peerid: %s\n", err)
 			continue
 		}
 
 		err = validator.Validate("/ipns/"+string(peerid), msg.Data)
 		if err != nil {
-			fmt.Printf("received invalid: validate: %s\n", err)
+			// fmt.Printf("update: validate: %s\n", err)
 			continue
 		}
 
-		fmt.Printf("received: /ipns/%s => %s\n", peerid.Pretty(), entry.GetValue())
+		// store entry
+		d.entriesMutex.Lock()
+		d.entries[peerid] = entry
+		d.entriesMutex.Unlock()
+
+		fmt.Printf("update: /ipns/%s => %s\n", peerid.Pretty(), entry.GetValue())
 	}
 }
 
-func (d *Daemon) ServeDNS(ctx context.Context) {
-	handler := &dnsServer{}
-	err := dns.ListenAndServe(":4053", "udp", handler)
+func (d *Daemon) GetEntry(peerid p2ppeer.ID) (*ipnspb.IpnsEntry, bool) {
+	d.entriesMutex.RLock()
+	defer d.entriesMutex.RUnlock()
+
+	entry, ok := d.entries[peerid]
+	return entry, ok
+}
+
+func (d *Daemon) StartDNS(ctx context.Context, network string) {
+	handler := &dnsServer{getEntry: d.GetEntry, network: network}
+	err := dns.ListenAndServe(":4053", network, handler)
 	if err != nil {
 		fmt.Printf("dns server: %s\n", err)
 	}
 }
 
-type dnsServer struct{}
-
-func (dnsserv *dnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
-	fmt.Printf("dns request: %+v\n", r.Question)
-	for _, q := range r.Question {
-		if q.Qtype != dns.TypeTXT {
-			continue
-		}
-
-		labels := dns.SplitDomainName(q.Name)
-		peercid, err := cid.Decode(labels[0])
-		if err != nil {
-			continue
-		}
-
-		peerid, err := p2ppeer.IDFromBytes(peercid.Hash())
-		if err != nil {
-			continue
-		}
-
-		fmt.Printf("serve: /ipns/%s\n", peerid.Pretty())
-
-		w.WriteMsg(r)
-	}
+type dnsServer struct {
+	getEntry func(p2ppeer.ID) (*ipnspb.IpnsEntry, bool)
+	network  string
 }
 
-func (d *Daemon) ServeHTTP(ctx context.Context) {}
+func (dnsserv *dnsServer) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+	fmt.Printf("dns(%s): request: %+v\n", dnsserv.network, r.Question)
+
+	if len(r.Question) == 0 {
+		// fmt.Printf("dns(%s): no question asked\n", dnsserv.network)
+		return
+	}
+
+	q := r.Question[0]
+
+	if q.Qtype != dns.TypeTXT {
+		// fmt.Printf("dns(%s): i only speak TXT\n", dnsserv.network)
+		return
+	}
+
+	labels := dns.SplitDomainName(q.Name)
+	peercid, err := cid.Decode(labels[0])
+	if err != nil {
+		// fmt.Printf("dns(%s): cid error: %s\n", dnsserv.network, err)
+		return
+	}
+
+	peerid, err := p2ppeer.IDFromBytes(peercid.Hash())
+	if err != nil {
+		// fmt.Printf("dns(%s): peerid error: %s\n", dnsserv.network, err)
+		return
+	}
+
+	hdr := dns.RR_Header{Ttl: 1, Class: dns.ClassINET, Rrtype: dns.TypeTXT}
+	hdr.Name = strings.Join(labels, ".") + "."
+
+	entry, ok := dnsserv.getEntry(peerid)
+	if !ok {
+		m := new(dns.Msg)
+		m.SetRcode(r, dns.RcodeSuccess)
+		m.Answer = []dns.RR{&dns.TXT{Hdr: hdr, Txt: []string{"ipns="}}}
+		m.Authoritative = true
+		w.WriteMsg(m)
+		// fmt.Printf("dns(%s): nxdomain: /ipns/%s\n", dnsserv.network, peerid.Pretty())
+		return
+	}
+
+	m := new(dns.Msg)
+	m.SetReply(r)
+	if e := m.IsEdns0(); e != nil {
+		// fmt.Printf("dns(%s): edns0: 4096 bytes\n", dnsserv.network)
+		m.SetEdns0(4096, e.Do())
+	} else if dnsserv.network == "udp" {
+		m.Truncated = true
+	}
+	m.Authoritative = true
+
+	data, err := proto.Marshal(entry)
+	if err != nil {
+		// fmt.Printf("dns(%s): protobuf error: %s\n", dnsserv.network, err)
+		return
+	}
+
+	bigtxt := "ipns=" + multibase.MustNewEncoder(multibase.Base32).Encode(data)
+	biglen := len(bigtxt)
+	txt := []string{}
+	for biglen > 0 {
+		pos := 254
+		if biglen < 254 {
+			pos = biglen
+		}
+		txt = append(txt, bigtxt[:pos])
+		bigtxt = bigtxt[pos:]
+		biglen = len(bigtxt)
+	}
+
+	m.Answer = []dns.RR{&dns.TXT{Hdr: hdr, Txt: txt}}
+	m.SetRcode(r, dns.RcodeSuccess)
+	w.WriteMsg(m)
+
+	// fmt.Printf("dns(%s): ok: /ipns/%s\n", dnsserv.network, peerid.Pretty())
+}
