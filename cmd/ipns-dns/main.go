@@ -9,6 +9,8 @@ import (
 	manet "gx/ipfs/QmV6FjemM1K8oXjrvuq3wuVWWoU2TLDPmNnKrxHzY3v6Ai/go-multiaddr-net"
 )
 
+const dnsAddress = "0.0.0.0:53"
+
 const topic = "/ipns/.well-known/all"
 
 var bootstrap = []string{
@@ -42,8 +44,8 @@ func main() {
 	fmt.Printf("bootstrapped: ok\n")
 
 	go d.ReceiveUpdates(ctx)
-	go d.StartDNS(ctx, "udp")
-	go d.StartDNS(ctx, "tcp")
+	go d.StartDNS(ctx, dnsAddress, "udp")
+	go d.StartDNS(ctx, dnsAddress, "tcp")
 
 	go func() {
 		for {
