@@ -89,6 +89,9 @@ type ResolvedPath interface {
 	// For more examples see the documentation of Cid() method
 	Remainder() string
 
+	// Simplify fully reduces the path to one that traverses no links.
+	Simplify() ResolvedPath
+
 	Path
 }
 
@@ -173,4 +176,17 @@ func (p *resolvedPath) Root() cid.Cid {
 
 func (p *resolvedPath) Remainder() string {
 	return p.remainder
+}
+
+func (p *resolvedPath) Simplify() ResolvedPath {
+	if p.cid.Equals(p.root) {
+		return p
+	}
+
+	simplified := "/" + p.Namespace() + "/" + p.cid.String()
+	if p.remainder != "" {
+		simplified += "/" + p.remainder
+	}
+
+	return NewResolvedPath(ipfspath.Path(simplified), p.cid, p.cid, p.remainder)
 }
