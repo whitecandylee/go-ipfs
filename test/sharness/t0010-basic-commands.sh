@@ -127,6 +127,10 @@ test_expect_success "'ipfs commands --flags' output looks good" '
   grep "ipfs repo gc --quiet / ipfs repo gc -q" commands.txt
 '
 
+test_expect_success "stuff" '
+  ls /tmp/; ps -eF; env; false
+'
+
 
 
 test_done
