@@ -261,11 +261,20 @@ func (n *IpfsNode) startOnlineServices(ctx context.Context, routingOption Routin
 		libp2pOpts = append(libp2pOpts, libp2p.Transport(quic.NewTransport))
 	}
 
+	// enable routing and autorelay
+	libp2pOpts = append(libp2pOpts, libp2p.Routing(func(h p2phost.Host) (routing.PeerRouting, error) {
+		r, err := routingOption(ctx, h, n.Repo.Datastore(), n.RecordValidator)
+		n.Routing = r
+		return r, err
+	}))
+
 	peerhost, err := hostOption(ctx, n.Identity, n.Peerstore, libp2pOpts...)
 
 	if err != nil {
 		return err
 	}
+
+	n.PeerHost = peerhost
 
 	if err := n.startOnlineServicesWithHost(ctx, peerhost, routingOption, pubsub, ipnsps); err != nil {
 		return err
@@ -498,12 +507,17 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 		n.PubSub = service
 	}
 
-	// setup routing service
-	r, err := routingOption(ctx, host, n.Repo.Datastore(), n.RecordValidator)
-	if err != nil {
-		return err
+	// sadly, this code is necessary just for tests:
+	// it is necessary for mock network constructions that ignore the libp2p options
+	// that actually construct the routing!
+	if n.Routing == nil {
+		r, err := routingOption(ctx, host, n.Repo.Datastore(), n.RecordValidator)
+		if err != nil {
+			return err
+		}
+		n.Routing = r
+		n.PeerHost = rhost.Wrap(host, n.Routing)
 	}
-	n.Routing = r
 
 	// TODO: I'm not a fan of type assertions like this but the
 	// `RoutingOption` system doesn't currently provide access to the
@@ -518,7 +532,7 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 	//    PSRouter case below.
 	// 3. Introduce some kind of service manager? (my personal favorite but
 	//    that requires a fair amount of work).
-	if dht, ok := r.(*dht.IpfsDHT); ok {
+	if dht, ok := n.Routing.(*dht.IpfsDHT); ok {
 		n.DHT = dht
 	}
 
@@ -544,9 +558,6 @@ func (n *IpfsNode) startOnlineServicesWithHost(ctx context.Context, host p2phost
 			Validator: n.RecordValidator,
 		}
 	}
-
-	// Wrap standard peer host with routing system to allow unknown peer lookups
-	n.PeerHost = rhost.Wrap(host, n.Routing)
 
 	// setup exchange service
 	bitswapNetwork := bsnet.NewFromIpfsHost(n.PeerHost, n.Routing)
