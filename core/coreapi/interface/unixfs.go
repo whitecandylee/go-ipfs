@@ -6,7 +6,7 @@ import (
 	"github.com/ipfs/go-ipfs/core/coreapi/interface/options"
 
 	ipld "gx/ipfs/QmcKKBwfz6FyQdHR2jsXrrF6XeSBXYL86anmWNewpFpoF5/go-ipld-format"
-	files "gx/ipfs/QmeMTH1JMwLui2dGzn5Ecvup9NY41PqD2Md4Fx4cgk7ykr/go-ipfs-files"
+	files "gx/ipfs/QmeaQRmnRog7NxLEWHP9zSTkics4cbgwBVa7q49LmBowDr/go-ipfs-files"
 )
 
 // TODO: ideas on making this more coreapi-ish without breaking the http API?
@@ -23,13 +23,13 @@ type UnixfsAPI interface {
 	// Add imports the data from the reader into merkledag file
 	//
 	// TODO: a long useful comment on how to use this for many different scenarios
-	Add(context.Context, files.File, ...options.UnixfsAddOption) (ResolvedPath, error)
+	Add(context.Context, files.Node, ...options.UnixfsAddOption) (ResolvedPath, error)
 
 	// Get returns a read-only handle to a file tree referenced by a path
 	//
 	// Note that some implementations of this API may apply the specified context
 	// to operations performed on the returned file
-	Get(context.Context, Path) (files.File, error)
+	Get(context.Context, Path) (files.Node, error)
 
 	// Ls returns the list of links in a directory
 	Ls(context.Context, Path) ([]*ipld.Link, error)
