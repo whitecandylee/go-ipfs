@@ -464,6 +464,11 @@ Available templates:
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		template := "empty"
 		if len(req.Arguments) == 1 {
 			template = req.Arguments[0]
@@ -473,6 +478,8 @@ Available templates:
 		if err != nil && err != io.EOF {
 			return err
 		}
+
+		node.Provider.Provide(nd.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: nd.Cid().String()})
 	},
