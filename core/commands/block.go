@@ -153,6 +153,11 @@ than 'sha2-256' or format to anything other than 'v0' will result in CIDv1.
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		file, err := req.Files.NextFile()
 		if err != nil {
 			return err
@@ -182,6 +187,8 @@ than 'sha2-256' or format to anything other than 'v0' will result in CIDv1.
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Path().Cid())
 
 		return cmds.EmitOnce(res, &BlockStat{
 			Key:  p.Path().Cid().String(),
