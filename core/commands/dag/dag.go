@@ -138,7 +138,11 @@ into an object of the specified format.
 				return err
 			}
 		}
-		return nil
+
+		return cids.ForEach(func(cid cid.Cid) error {
+			nd.Provider.Provide(cid)
+			return nil
+		})
 	},
 	Type: OutputObject{},
 	Encoders: cmds.EncoderMap{
