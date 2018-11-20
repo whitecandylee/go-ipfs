@@ -55,6 +55,11 @@ the limit will not be respected by the network.
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		root, err := coreiface.ParsePath(req.Arguments[0])
 		if err != nil {
 			return err
@@ -69,6 +74,8 @@ the limit will not be respected by the network.
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: p.Cid().String()})
 	},
@@ -102,6 +109,11 @@ Example:
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		root, err := coreiface.ParsePath(req.Arguments[0])
 		if err != nil {
 			return err
@@ -116,6 +128,8 @@ Example:
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: p.Cid().String()})
 	},
@@ -145,6 +159,11 @@ Remove a Merkle-link from the given object and return the hash of the result.
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		root, err := coreiface.ParsePath(req.Arguments[0])
 		if err != nil {
 			return err
@@ -155,6 +174,8 @@ Remove a Merkle-link from the given object and return the hash of the result.
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: p.Cid().String()})
 	},
@@ -197,6 +218,11 @@ to a file containing 'bar', and returns the hash of the new object.
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		root, err := coreiface.ParsePath(req.Arguments[0])
 		if err != nil {
 			return err
@@ -219,6 +245,8 @@ to a file containing 'bar', and returns the hash of the new object.
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: p.Cid().String()})
 	},
