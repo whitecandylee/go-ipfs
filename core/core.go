@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ipfs/go-ipfs/provide"
 	"io"
 	"io/ioutil"
 	"os"
@@ -133,6 +134,7 @@ type IpfsNode struct {
 	Exchange     exchange.Interface  // the block exchange + strategy (bitswap)
 	Namesys      namesys.NameSystem  // the name system, resolves paths to hashes
 	Reprovider   *rp.Reprovider      // the value reprovider system
+	Provider     *provide.Provider   // the value provider system
 	IpnsRepub    *ipnsrp.Republisher
 
 	PubSub   *pubsub.PubSub
@@ -316,6 +318,15 @@ func (n *IpfsNode) startLateOnlineServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// Provider
+
+	// TODO: Make strategy configurable
+	strategy := provide.NewProvideAllStrategy(n.DAG)
+	n.Provider = provide.NewProvider(ctx, strategy, n.Routing)
+	go n.Provider.Run()
+
+	// Reprovider
 
 	var keyProvider rp.KeyChanFunc
 
