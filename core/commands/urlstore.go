@@ -74,6 +74,11 @@ time.
 
 		useTrickledag, _ := req.Options[trickleOptionName].(bool)
 
+		enc, err := cmdenv.ProcCidBase(req)
+		if err != nil {
+			return err
+		}
+
 		hreq, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			return err
@@ -108,7 +113,7 @@ time.
 		}
 
 		return cmds.EmitOnce(res, &BlockStat{
-			Key:  root.Cid().String(),
+			Key:  enc.Encode(root.Cid()),
 			Size: int(hres.ContentLength),
 		})
 	},

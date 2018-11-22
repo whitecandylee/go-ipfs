@@ -44,6 +44,11 @@ represent it.
 			return err
 		}
 
+		enc, err := cmdenv.ProcCidBase(req)
+		if err != nil {
+			return err
+		}
+
 		fi, err := req.Files.NextFile()
 		if err != nil {
 			return err
@@ -59,7 +64,7 @@ represent it.
 		fi.FileName()
 		return cmds.EmitOnce(res, &coreiface.AddEvent{
 			Name: fi.FileName(),
-			Hash: c.String(),
+			Hash: enc.Encode(c),
 		})
 	},
 	Type: coreiface.AddEvent{},

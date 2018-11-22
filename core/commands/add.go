@@ -11,6 +11,7 @@ import (
 	options "github.com/ipfs/go-ipfs/core/coreapi/interface/options"
 
 	pb "gx/ipfs/QmPtj12fdwuAqj9sBSTNUxBNu8kCGNp8b3o8yUzMm5GHpq/pb"
+	//cidenc "gx/ipfs/QmWf8NwKFLbTBvAvZst3bYF7WEEetzxWyMhvQ885cj9MM8/go-cidutil/cidenc"
 	files "gx/ipfs/QmZMWMvWMVKCbHetJ4RgndbuEF1io2UpUxwQwtNjtYPzSC/go-ipfs-files"
 	cmds "gx/ipfs/Qma6uuSyjkecGhMFFLfzyJDPyoDtNJSHJNweDccZhaWkgU/go-ipfs-cmds"
 	cmdkit "gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
@@ -167,6 +168,11 @@ You can now check what blocks have been created by:
 			return fmt.Errorf("unrecognized hash function: %s", strings.ToLower(hashFunStr))
 		}
 
+		enc, err := cmdenv.ProcCidBase(req)
+		if err != nil {
+			return err
+		}
+
 		events := make(chan interface{}, adderOutChanSize)
 
 		opts := []options.UnixfsAddOption{
@@ -212,9 +218,13 @@ You can now check what blocks have been created by:
 			_, err = api.Unixfs().Add(req.Context, req.Files, opts...)
 		}()
 
-		err = res.Emit(events)
-		if err != nil {
-			return err
+		for event := range events {
+			output := event.(*coreiface.AddEvent)
+			output.Hash, _ = enc.Recode(output.Hash)
+			err = res.Emit(event)
+			if err != nil {
+				return err
+			}
 		}
 
 		return <-errCh

@@ -50,6 +50,7 @@ The output is:
 	Options: []cmdkit.Option{
 		cmdkit.BoolOption(fileOrderOptionName, "sort the results based on the path of the backing file"),
 	},
+	PreRun: cmdenv.EnableCidBaseGlobal,
 	Run: func(req *cmds.Request, res cmds.ResponseEmitter, env cmds.Environment) error {
 		_, fs, err := getFilestore(env)
 		if err != nil {
@@ -121,6 +122,7 @@ For ERROR entries the error will also be printed to stderr.
 	Options: []cmdkit.Option{
 		cmdkit.BoolOption(fileOrderOptionName, "verify the objects based on the order of the backing file"),
 	},
+	PreRun: cmdenv.EnableCidBaseGlobal,
 	Run: func(req *cmds.Request, res cmds.ResponseEmitter, env cmds.Environment) error {
 		_, fs, err := getFilestore(env)
 		if err != nil {
@@ -184,6 +186,12 @@ var dupsFileStore = &cmds.Command{
 		if err != nil {
 			return err
 		}
+
+		enc, err := cmdenv.ProcCidBase(req)
+		if err != nil {
+			return err
+		}
+
 		ch, err := fs.FileManager().AllKeysChan(req.Context)
 		if err != nil {
 			return err
@@ -195,7 +203,7 @@ var dupsFileStore = &cmds.Command{
 				return res.Emit(&RefWrapper{Err: err.Error()})
 			}
 			if have {
-				if err := res.Emit(&RefWrapper{Ref: cid.String()}); err != nil {
+				if err := res.Emit(&RefWrapper{Ref: enc.Encode(cid)}); err != nil {
 					return err
 				}
 			}
