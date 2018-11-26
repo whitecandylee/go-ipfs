@@ -15,7 +15,6 @@ import (
 	nsopts "github.com/ipfs/go-ipfs/namesys/opts"
 	path "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
 
-	cidenc "gx/ipfs/QmVjZoEZg2oxXGFGjbD28x3gGN6ALHAW6BN2LKRUcaJ21i/go-cidutil/cidenc"
 	cmds "gx/ipfs/Qma6uuSyjkecGhMFFLfzyJDPyoDtNJSHJNweDccZhaWkgU/go-ipfs-cmds"
 	cmdkit "gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
 )
@@ -100,7 +99,7 @@ Resolve the value of an IPFS DAG path:
 			return err
 		}
 		if !cmdenv.CidBaseDefined(req) {
-			enc, _ = cidenc.FromPath(enc, name)
+			enc, _ = cmdenv.CidEncoderFromPath(enc, name)
 		}
 
 		// the case when ipns is resolved step by step
