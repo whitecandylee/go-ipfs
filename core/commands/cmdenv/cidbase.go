@@ -8,7 +8,7 @@ import (
 	mbase "gx/ipfs/QmekxXDhCxCJRNuzmHreuaT3BsuJcsjcXWNrtV9C8DRHtd/go-multibase"
 )
 
-var OptionCidBase = cmdkit.StringOption("cid-base", "Multi-base encoding used for version 1 CIDs in output.")
+var OptionCidBase = cmdkit.StringOption("cid-base", "Multibase encoding used for version 1 CIDs in output.")
 var OptionOutputCidV1 = cmdkit.BoolOption("output-cidv1", "Upgrade CID version 0 to version 1 in output.")
 
 // ProcCidBase processes the `cid-base` and `output-cidv1` options and
@@ -40,7 +40,9 @@ func CidBaseDefined(req *cmds.Request) bool {
 	return base != ""
 }
 
-// EnableCidBaseGlobal is a prerun function...
+// EnableCidBaseGlobal is a prerun function to set the default
+// (i.e. global) CID encoding based on the `cid-base` and
+// `output-cidv1` options.
 func EnableCidBaseGlobal(req *cmds.Request, env cmds.Environment) error {
 	enc, err := ProcCidBase(req)
 	if err != nil {
@@ -50,12 +52,12 @@ func EnableCidBaseGlobal(req *cmds.Request, env cmds.Environment) error {
 	return nil
 }
 
-// FromPath creates a new encoder that is influenced from the encoded
-// Cid in a Path.  For CidV0 the multibase from the base encoder is
-// used and automatic upgrades are disabled.  For CidV1 the multibase
-// from the CID is used and upgrades are eneabled.  On error the base
-// encoder is returned.  If you don't care about the error condiation
-// it is safe to ignore the error returned.
+// CidEncoderFromPath creates a new encoder that is influenced from
+// the encoded Cid in a Path.  For CidV0 the multibase from the base
+// encoder is used and automatic upgrades are disabled.  For CidV1 the
+// multibase from the CID is used and upgrades are eneabled.  On error
+// the base encoder is returned.  If you don't care about the error
+// condiation it is safe to ignore the error returned.
 func CidEncoderFromPath(enc cidenc.Encoder, p string) (cidenc.Encoder, error) {
 	v := extractCidString(p)
 	if cidVer(v) == 0 {
