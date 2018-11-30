@@ -391,6 +391,11 @@ And then run:
 			return err
 		}
 
+		node, err := cmdenv.GetNode(env)
+		if err != nil {
+			return err
+		}
+
 		input, err := req.Files.NextFile()
 		if err != nil && err != io.EOF {
 			return err
@@ -418,6 +423,8 @@ And then run:
 		if err != nil {
 			return err
 		}
+
+		node.Provider.Provide(p.Cid())
 
 		return cmds.EmitOnce(res, &Object{Hash: p.Cid().String()})
 	},
