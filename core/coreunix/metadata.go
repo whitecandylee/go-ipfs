@@ -2,8 +2,8 @@ package coreunix
 
 import (
 	core "github.com/ipfs/go-ipfs/core"
+	ft "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs"
 	cid "gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
-	ft "gx/ipfs/QmcDCSADywPWksTLXXvRYQ7hN7Vma57RxSnfE1MTeQzvzh/go-unixfs"
 	dag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
 )
 

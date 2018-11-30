@@ -13,11 +13,11 @@ import (
 	cmdenv "github.com/ipfs/go-ipfs/core/commands/cmdenv"
 	e "github.com/ipfs/go-ipfs/core/commands/e"
 
+	uarchive "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs/archive"
 	"gx/ipfs/QmPtj12fdwuAqj9sBSTNUxBNu8kCGNp8b3o8yUzMm5GHpq/pb"
 	tar "gx/ipfs/QmQine7gvHncNevKtG9QXxf3nXcwSj6aDDmMm52mHofEEp/tar-utils"
 	path "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
-	"gx/ipfs/QmXG3oV1n692MTEH4gaqiJ84h9b6PpDD1vTQ63WeSGs8RS/go-ipfs-cmds"
-	uarchive "gx/ipfs/QmcDCSADywPWksTLXXvRYQ7hN7Vma57RxSnfE1MTeQzvzh/go-unixfs/archive"
+	"gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	dag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
 	"gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
 )

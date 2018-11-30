@@ -8,10 +8,10 @@ import (
 	"github.com/ipfs/go-ipfs/core"
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 
+	uio "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs/io"
 	ipfspath "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
 	"gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path/resolver"
 	"gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
-	uio "gx/ipfs/QmcDCSADywPWksTLXXvRYQ7hN7Vma57RxSnfE1MTeQzvzh/go-unixfs/io"
 	ipld "gx/ipfs/QmcKKBwfz6FyQdHR2jsXrrF6XeSBXYL86anmWNewpFpoF5/go-ipld-format"
 )
 

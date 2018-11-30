@@ -14,9 +14,9 @@ import (
 	repo "github.com/ipfs/go-ipfs/repo"
 	cidv0v1 "github.com/ipfs/go-ipfs/thirdparty/cidv0v1"
 	"github.com/ipfs/go-ipfs/thirdparty/verifbs"
+	uio "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs/io"
 	resolver "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path/resolver"
 	bserv "gx/ipfs/QmVDTbzzTwnuBwNbJdhW3u7LoBQp46bezm9yp4z1RoEepM/go-blockservice"
-	uio "gx/ipfs/QmcDCSADywPWksTLXXvRYQ7hN7Vma57RxSnfE1MTeQzvzh/go-unixfs/io"
 	dag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
 
 	ci "gx/ipfs/QmNiJiXwWE3kRhZrC5ej3kSjWHm337pYfhjLGSCDNKJP2s/go-libp2p-crypto"

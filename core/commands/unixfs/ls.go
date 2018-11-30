@@ -9,8 +9,8 @@ import (
 	cmdenv "github.com/ipfs/go-ipfs/core/commands/cmdenv"
 	iface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 
-	cmds "gx/ipfs/QmXG3oV1n692MTEH4gaqiJ84h9b6PpDD1vTQ63WeSGs8RS/go-ipfs-cmds"
-	unixfs "gx/ipfs/QmcDCSADywPWksTLXXvRYQ7hN7Vma57RxSnfE1MTeQzvzh/go-unixfs"
+	unixfs "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs"
+	cmds "gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	merkledag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
 	cmdkit "gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
 )

@@ -5,7 +5,7 @@ import (
 
 	"github.com/ipfs/go-ipfs/core/coreapi/interface/options"
 
-	files "gx/ipfs/QmaVhCAQGAx6n3iSUyUm4xCtfCWqpx96PJ57ykGASZbt5q/go-ipfs-files"
+	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	ipld "gx/ipfs/QmcKKBwfz6FyQdHR2jsXrrF6XeSBXYL86anmWNewpFpoF5/go-ipld-format"
 )
 

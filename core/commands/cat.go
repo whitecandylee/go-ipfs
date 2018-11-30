@@ -9,8 +9,8 @@ import (
 	"github.com/ipfs/go-ipfs/core/commands/cmdenv"
 	"github.com/ipfs/go-ipfs/core/coreapi/interface"
 
-	cmds "gx/ipfs/QmXG3oV1n692MTEH4gaqiJ84h9b6PpDD1vTQ63WeSGs8RS/go-ipfs-cmds"
-	"gx/ipfs/QmaVhCAQGAx6n3iSUyUm4xCtfCWqpx96PJ57ykGASZbt5q/go-ipfs-files"
+	"gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
+	cmds "gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	"gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
 )
 
