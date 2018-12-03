@@ -12,6 +12,7 @@ import (
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 	"github.com/ipfs/go-ipfs/core/coreapi/interface/options"
 
+	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	cid "gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
 	cmds "gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	ipld "gx/ipfs/QmcKKBwfz6FyQdHR2jsXrrF6XeSBXYL86anmWNewpFpoF5/go-ipld-format"
@@ -395,7 +396,7 @@ And then run:
 		if !it.Next() && it.Err() != nil {
 			return it.Err()
 		}
-		if it.File() == nil {
+		if files.FileFrom(it) == nil {
 			return fmt.Errorf("expected a regular file")
 		}
 
@@ -414,7 +415,7 @@ And then run:
 			return err
 		}
 
-		p, err := api.Object().Put(req.Context, it.File(),
+		p, err := api.Object().Put(req.Context, files.FileFrom(it),
 			options.Object.DataType(datafieldenc),
 			options.Object.InputEnc(inputenc),
 			options.Object.Pin(dopin))

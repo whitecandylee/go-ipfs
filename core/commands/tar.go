@@ -9,6 +9,7 @@ import (
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 	tar "github.com/ipfs/go-ipfs/tar"
 
+	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	"gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
 	cmds "gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	dag "gx/ipfs/QmdURv6Sbob8TVW2tFFve9vcEWrSUgwPqeqnXyvYhLrkyd/go-merkledag"
@@ -48,11 +49,11 @@ represent it.
 		if !it.Next() && it.Err() != nil {
 			return it.Err()
 		}
-		if it.File() == nil {
+		if files.FileFrom(it) == nil {
 			return fmt.Errorf("expected a regular file")
 		}
 
-		node, err := tar.ImportTar(req.Context, it.File(), nd.DAG)
+		node, err := tar.ImportTar(req.Context, files.FileFrom(it), nd.DAG)
 		if err != nil {
 			return err
 		}

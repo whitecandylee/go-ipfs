@@ -4,13 +4,12 @@ import (
 	"context"
 	"github.com/ipfs/go-ipfs/core"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"path"
 	"testing"
 	"time"
 
-	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
+	"gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	ipath "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
 
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
@@ -20,7 +19,7 @@ import (
 var rnd = rand.New(rand.NewSource(0x62796532303137))
 
 func addTestObject(ctx context.Context, api coreiface.CoreAPI) (coreiface.Path, error) {
-	return api.Unixfs().Add(ctx, files.NewReaderFile(ioutil.NopCloser(&io.LimitedReader{R: rnd, N: 4092}), nil))
+	return api.Unixfs().Add(ctx, files.FileFrom(&io.LimitedReader{R: rnd, N: 4092}))
 }
 
 func appendPath(p coreiface.Path, sub string) coreiface.Path {

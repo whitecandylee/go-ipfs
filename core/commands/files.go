@@ -16,6 +16,7 @@ import (
 
 	ft "gx/ipfs/QmPBbzSbX3pMRnN3fHLWDiLkCAtuZkZJhbctMNwVSMzN7m/go-unixfs"
 	humanize "gx/ipfs/QmPSBJL4momYnE7DcUyk2DVhD6rH488ZmHBGLbxNdhU44K/go-humanize"
+	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	cid "gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
 	bservice "gx/ipfs/QmVDTbzzTwnuBwNbJdhW3u7LoBQp46bezm9yp4z1RoEepM/go-blockservice"
 	mfs "gx/ipfs/QmXaDT2octH295k1hZDXAz1Yx9WiD5E1QiyixQko7UYP94/go-mfs"
@@ -773,11 +774,11 @@ stat' on the file or any of its ancestors.
 		if !it.Next() && it.Err() != nil {
 			return it.Err()
 		}
-		if it.File() == nil {
+		if files.FileFrom(it) == nil {
 			return fmt.Errorf("expected a regular file")
 		}
 
-		var r io.Reader = it.File()
+		var r io.Reader = files.FileFrom(it)
 		if countfound {
 			r = io.LimitReader(r, int64(count))
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-ipfs/core/coredag"
 	"github.com/ipfs/go-ipfs/pin"
 
+	files "gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	path "gx/ipfs/QmQtg7N4XjAk2ZYpBjjv8B6gQprsRekabHBCnF6i46JYKJ/go-path"
 	cid "gx/ipfs/QmR8BauakNcBa3RbE4nbQu76PDiJgoQgz8AJdhJuiU4TAw/go-cid"
 	cmds "gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
@@ -94,10 +95,10 @@ into an object of the specified format.
 
 		it := req.Files.Entries()
 		for it.Next() {
-			if it.File() == nil {
+			if files.FileFrom(it) == nil {
 				return fmt.Errorf("expected a regular file")
 			}
-			nds, err := coredag.ParseInputs(ienc, format, it.File(), mhType, -1)
+			nds, err := coredag.ParseInputs(ienc, format, files.FileFrom(it), mhType, -1)
 			if err != nil {
 				return err
 			}

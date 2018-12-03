@@ -16,6 +16,7 @@ import (
 	namesys "github.com/ipfs/go-ipfs/namesys"
 	fsrepo "github.com/ipfs/go-ipfs/repo/fsrepo"
 
+	"gx/ipfs/QmPhx9B9cuaXc4vuw62567BF5NxfpsdD1AVE9HbTn7t1Y6/go-ipfs-files"
 	"gx/ipfs/QmXctaABKwgzmQgNM4bucMJf7zJnxxvhmPM1Pw95dxUfB5/go-ipfs-config"
 	"gx/ipfs/Qmb7ARH13wPpsyZSXEDeF8aUqSf1ixmWDuD9eNoHUFM5bW/go-ipfs-cmds"
 	"gx/ipfs/Qmde5VP1qUkyQXKCfmEUA7bP64V2HAptbJ7phuPp7jXWwg/go-ipfs-cmdkit"
@@ -89,12 +90,12 @@ environment variable:
 			if !it.Next() && it.Err() != nil {
 				return it.Err()
 			}
-			if it.File() == nil {
+			if files.FileFrom(it) == nil {
 				return fmt.Errorf("expected a regular file")
 			}
 
 			conf = &config.Config{}
-			if err := json.NewDecoder(it.File()).Decode(conf); err != nil {
+			if err := json.NewDecoder(files.FileFrom(it)).Decode(conf); err != nil {
 				return err
 			}
 		}
